@@ -3,22 +3,20 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '../context/AuthContext';
-import { Colors } from '../constants/Colors';
+import { SettingsProvider, useSettings } from '../context/SettingsContext';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
+function RootStack() {
+  const { colors, theme } = useSettings();
 
   return (
-    <AuthProvider>
-      <StatusBar style="light" backgroundColor={Colors.background} />
+    <>
+      <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={colors.background} />
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: Colors.background },
+          contentStyle: { backgroundColor: colors.background },
           animation: 'fade',
         }}
       >
@@ -26,6 +24,20 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
       </Stack>
-    </AuthProvider>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
+  return (
+    <SettingsProvider>
+      <AuthProvider>
+        <RootStack />
+      </AuthProvider>
+    </SettingsProvider>
   );
 }

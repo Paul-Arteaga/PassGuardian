@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,11 +14,16 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Colors } from '../../constants/Colors';
+import { AppThemeColors } from '../../constants/Colors';
+import { useAppTheme } from '../../context/SettingsContext';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 
 export default function SignInScreen() {
   const { signIn } = useAuth();
+  const Colors = useAppTheme();
+  const { t } = useTranslation();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -76,7 +81,7 @@ export default function SignInScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -95,22 +100,22 @@ export default function SignInScreen() {
               </LinearGradient>
             </View>
           </View>
-          <Text style={styles.appName}>PassGuardian</Text>
-          <Text style={styles.appSubtitle}>Access Your Secure Vault</Text>
+          <Text style={styles.appName}>{t('home.appTitle')}</Text>
+          <Text style={styles.appSubtitle}>{t('auth.signInSub')}</Text>
         </Animated.View>
 
         {/* Form Card */}
         <Animated.View style={[styles.formCard, { opacity: formOpacity }]}>
-          <Text style={styles.formTitle}>Welcome Back</Text>
+          <Text style={styles.formTitle}>{t('auth.signInTitle')}</Text>
 
           {/* Email */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Email</Text>
+            <Text style={styles.fieldLabel}>{t('auth.emailLabel')}</Text>
             <View style={getInputStyle('email')}>
               <Ionicons name="mail-outline" size={18} color={focusedField === 'email' ? Colors.accent : Colors.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="you@example.com"
+                placeholder={t('auth.emailPlaceholder')}
                 placeholderTextColor={Colors.textMuted}
                 value={email}
                 onChangeText={(t) => { setEmail(t); setErrors(e => ({ ...e, email: '' })); }}
@@ -125,12 +130,12 @@ export default function SignInScreen() {
 
           {/* Master Password */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Master Password</Text>
+            <Text style={styles.fieldLabel}>{t('auth.passwordLabel')}</Text>
             <View style={getInputStyle('password')}>
               <Ionicons name="lock-closed-outline" size={18} color={focusedField === 'password' ? Colors.accent : Colors.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="••••••••"
+                placeholder={t('auth.passwordPlaceholder')}
                 placeholderTextColor={Colors.textMuted}
                 value={password}
                 onChangeText={(t) => { setPassword(t); setErrors(e => ({ ...e, password: '' })); }}
@@ -147,7 +152,7 @@ export default function SignInScreen() {
 
           {/* Forgot Password */}
           <TouchableOpacity style={styles.forgotRow}>
-            <Text style={styles.forgotText}>Forgot Master Password?</Text>
+            <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
           </TouchableOpacity>
 
           {/* Sign In Button */}
@@ -166,16 +171,15 @@ export default function SignInScreen() {
               {isLoading ? (
                 <ActivityIndicator color={Colors.background} />
               ) : (
-                <Text style={styles.buttonText}>Sign In</Text>
+                <Text style={styles.buttonText}>{t('auth.signInButton')}</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
 
           {/* Sign Up Link */}
           <View style={styles.linkRow}>
-            <Text style={styles.linkText}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
-              <Text style={styles.linkAction}>Create Account</Text>
+              <Text style={styles.linkText}>{t('auth.noAccount')}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -190,7 +194,7 @@ export default function SignInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -273,11 +277,6 @@ const styles = StyleSheet.create({
   },
   inputContainerFocused: {
     borderColor: Colors.inputBorderFocus,
-    shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
   },
   inputContainerError: {
     borderColor: Colors.error,

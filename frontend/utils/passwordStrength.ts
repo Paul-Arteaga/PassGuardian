@@ -1,4 +1,4 @@
-import { Colors } from '../constants/Colors';
+import { AppThemeColors } from '../constants/Colors';
 
 export type StrengthLevel = 'Weak' | 'Fair' | 'Good' | 'Strong';
 
@@ -8,7 +8,7 @@ export interface PasswordStrengthResult {
   score: number; // 0-100
 }
 
-export function evaluatePasswordStrength(password: string): PasswordStrengthResult {
+export function evaluatePasswordStrength(password: string, Colors: AppThemeColors): PasswordStrengthResult {
   if (!password) {
     return { level: 'Weak', color: Colors.error, score: 0 };
   }
@@ -37,5 +37,5 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
   if (score < 30) return { level: 'Weak', color: Colors.error, score };
   if (score < 55) return { level: 'Fair', color: Colors.warning, score };
   if (score < 80) return { level: 'Good', color: Colors.success, score };
-  return { level: 'Strong', color: '#00d4ff', score };
+  return { level: 'Strong', color: Colors.accent, score };
 }

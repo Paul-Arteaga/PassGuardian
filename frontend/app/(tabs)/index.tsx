@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '../../constants/Colors';
+import { AppThemeColors } from '../../constants/Colors';
+import { useAppTheme } from '../../context/SettingsContext';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import WelcomeCard from '../../components/WelcomeCard';
 import SecurityCard from '../../components/SecurityCard';
@@ -23,6 +25,9 @@ const MOCK_PASSWORDS = [
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const Colors = useAppTheme();
+  const { t } = useTranslation();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
   const insets = useSafeAreaInsets();
   const fullName = user?.fullName || 'User';
 
@@ -44,8 +49,8 @@ export default function HomeScreen() {
             <Ionicons name="shield-checkmark" size={22} color={Colors.accent} />
           </View>
           <View>
-            <Text style={styles.headerTitle}>PassGuardian</Text>
-            <Text style={styles.headerSubtitle}>Secure Vault</Text>
+            <Text style={styles.headerTitle}>{t('home.appTitle')}</Text>
+            <Text style={styles.headerSubtitle}>{t('home.appSubtitle')}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.addButton} activeOpacity={0.7}>
@@ -61,19 +66,19 @@ export default function HomeScreen() {
         <WelcomeCard fullName={fullName} />
 
         {/* Security Overview */}
-        <Text style={styles.sectionTitle}>Security Overview</Text>
+        <Text style={styles.sectionTitle}>{t('home.securityOverview')}</Text>
         <View style={styles.gridRow}>
           <SecurityCard
             icon="key-outline"
             value={totalPasswords}
-            label="Total"
+            label={t('home.total')}
             color={Colors.accent}
           />
           <View style={styles.gridGap} />
           <SecurityCard
             icon="shield-checkmark-outline"
             value={strongPasswords}
-            label="Strong"
+            label={t('home.strong')}
             color={Colors.success}
           />
         </View>
@@ -81,7 +86,7 @@ export default function HomeScreen() {
           <SecurityCard
             icon="warning-outline"
             value={weakPasswords}
-            label="Weak"
+            label={t('home.weak')}
             color={Colors.warning}
           />
           <View style={styles.gridGap} />
@@ -89,13 +94,13 @@ export default function HomeScreen() {
             icon="trending-up"
             iconFamily="ionicons"
             value={`${securityScore}%`}
-            label="Score"
+            label={t('home.score')}
             color="#8b5cf6"
           />
         </View>
 
         {/* Recent Passwords */}
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Recent Passwords</Text>
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>{t('home.recentPasswords')}</Text>
         {MOCK_PASSWORDS.map((item) => (
           <PasswordItem
             key={item.id}
@@ -108,7 +113,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Colors } from '../constants/Colors';
+import { AppThemeColors } from '../constants/Colors';
+import { useAppTheme } from '../context/SettingsContext';
 
 interface SecurityCardProps {
   icon: string;
@@ -11,23 +12,27 @@ interface SecurityCardProps {
   color?: string;
 }
 
-export default function SecurityCard({ icon, iconFamily = 'ionicons', value, label, color = Colors.accent }: SecurityCardProps) {
+export default function SecurityCard({ icon, iconFamily = 'ionicons', value, label, color }: SecurityCardProps) {
+  const Colors = useAppTheme();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
+  const activeColor = color || Colors.accent;
+
   return (
-    <View style={[styles.card, { borderColor: color + '30' }]}>
-      <View style={[styles.iconContainer, { backgroundColor: color + '15' }]}>
+    <View style={[styles.card, { borderColor: activeColor + '30' }]}>
+      <View style={[styles.iconContainer, { backgroundColor: activeColor + '15' }]}>
         {iconFamily === 'material' ? (
-          <MaterialCommunityIcons name={icon as any} size={20} color={color} />
+          <MaterialCommunityIcons name={icon as any} size={20} color={activeColor} />
         ) : (
-          <Ionicons name={icon as any} size={20} color={color} />
+          <Ionicons name={icon as any} size={20} color={activeColor} />
         )}
       </View>
-      <Text style={[styles.value, { color }]}>{value}</Text>
+      <Text style={[styles.value, { color: activeColor }]}>{value}</Text>
       <Text style={styles.label}>{label}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: Colors.card,

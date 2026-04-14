@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Colors } from '../../constants/Colors';
+import { AppThemeColors } from '../../constants/Colors';
+import { useAppTheme, useSettings } from '../../context/SettingsContext';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 
 interface SettingItemProps {
@@ -25,11 +27,15 @@ interface SettingItemProps {
   danger?: boolean;
 }
 
-function SettingItem({ icon, label, subtitle, iconColor = Colors.accent, onPress, rightElement, danger }: SettingItemProps) {
+function SettingItem({ icon, label, subtitle, iconColor, onPress, rightElement, danger }: SettingItemProps) {
+  const Colors = useAppTheme();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
+  const activeIconColor = iconColor || Colors.accent;
+
   return (
     <TouchableOpacity style={styles.settingItem} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.settingIcon, { backgroundColor: iconColor + '15' }]}>
-        <Ionicons name={icon as any} size={20} color={iconColor} />
+      <View style={[styles.settingIcon, { backgroundColor: activeIconColor + '15' }]}>
+        <Ionicons name={icon as any} size={20} color={activeIconColor} />
       </View>
       <View style={styles.settingText}>
         <Text style={[styles.settingLabel, danger && { color: Colors.error }]}>{label}</Text>
@@ -41,6 +47,10 @@ function SettingItem({ icon, label, subtitle, iconColor = Colors.accent, onPress
 }
 
 export default function SettingsScreen() {
+  const { theme, setTheme, language, setLanguage } = useSettings();
+  const Colors = useAppTheme();
+  const { t } = useTranslation();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuth();
   const [biometricEnabled, setBiometricEnabled] = useState(false);
@@ -48,8 +58,8 @@ export default function SettingsScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
+      t('settings.signOut'),
+      t('settings.signOutConfirm'),
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -69,7 +79,7 @@ export default function SettingsScreen() {
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
       </View>
 
       <ScrollView
@@ -93,12 +103,12 @@ export default function SettingsScreen() {
         </View>
 
         {/* Security Section */}
-        <Text style={styles.sectionTitle}>Security</Text>
+        <Text style={styles.sectionTitle}>{t('settings.security')}</Text>
         <View style={styles.sectionCard}>
           <SettingItem
             icon="finger-print"
-            label="Biometric Unlock"
-            subtitle="Use Face ID or Touch ID"
+            label={t('settings.biometric')}
+            subtitle={t('settings.biometricSub')}
             rightElement={
               <Switch
                 value={biometricEnabled}
@@ -111,8 +121,8 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
           <SettingItem
             icon="timer-outline"
-            label="Auto-Lock"
-            subtitle="Lock after 5 minutes"
+            label={t('settings.autoLock')}
+            subtitle={t('settings.autoLockSub')}
             rightElement={
               <Switch
                 value={autoLockEnabled}
@@ -125,38 +135,75 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
           <SettingItem
             icon="key-outline"
-            label="Change Master Password"
+            label={t('settings.masterPassword')}
           />
         </View>
 
         {/* General Section */}
-        <Text style={styles.sectionTitle}>General</Text>
+        <Text style={styles.sectionTitle}>{t('settings.general')}</Text>
         <View style={styles.sectionCard}>
           <SettingItem
             icon="cloud-download-outline"
-            label="Export Passwords"
-            subtitle="Download as encrypted file"
+            label={t('settings.export')}
+            subtitle={t('settings.exportSub')}
           />
           <View style={styles.divider} />
           <SettingItem
             icon="cloud-upload-outline"
-            label="Import Passwords"
-            subtitle="From CSV or other managers"
+            label={t('settings.import')}
+            subtitle={t('settings.importSub')}
           />
           <View style={styles.divider} />
           <SettingItem
             icon="notifications-outline"
-            label="Notifications"
+            label={t('settings.notifications')}
             iconColor={Colors.warning}
           />
         </View>
 
+        {/* Appearance Section */}
+        <Text style={styles.sectionTitle}>{t('settings.appearance')}</Text>
+        <View style={styles.sectionCard}>
+          <SettingItem
+            icon="language-outline"
+            label={t('settings.language')}
+            rightElement={
+              <View style={styles.toggleGroup}>
+                <TouchableOpacity onPress={() => setLanguage('en')} style={[styles.toggleBtn, language === 'en' && styles.toggleBtnActive]}>
+                  <Text style={[styles.toggleBtnText, language === 'en' && styles.toggleBtnTextActive]}>EN</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setLanguage('es')} style={[styles.toggleBtn, language === 'es' && styles.toggleBtnActive]}>
+                  <Text style={[styles.toggleBtnText, language === 'es' && styles.toggleBtnTextActive]}>ES</Text>
+                </TouchableOpacity>
+              </View>
+            }
+          />
+          <View style={styles.divider} />
+          <SettingItem
+            icon="color-palette-outline"
+            label={t('settings.theme')}
+            rightElement={
+              <View style={styles.toggleGroup}>
+                <TouchableOpacity onPress={() => setTheme('native')} style={[styles.toggleBtn, theme === 'native' && styles.toggleBtnActive]}>
+                  <Text style={[styles.toggleBtnText, theme === 'native' && styles.toggleBtnTextActive]}>Blue</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setTheme('dark')} style={[styles.toggleBtn, theme === 'dark' && styles.toggleBtnActive]}>
+                  <Text style={[styles.toggleBtnText, theme === 'dark' && styles.toggleBtnTextActive]}>Dark</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setTheme('light')} style={[styles.toggleBtn, theme === 'light' && styles.toggleBtnActive]}>
+                  <Text style={[styles.toggleBtnText, theme === 'light' && styles.toggleBtnTextActive]}>Light</Text>
+                </TouchableOpacity>
+              </View>
+            }
+          />
+        </View>
+
         {/* About Section */}
-        <Text style={styles.sectionTitle}>About</Text>
+        <Text style={styles.sectionTitle}>{t('settings.about')}</Text>
         <View style={styles.sectionCard}>
           <SettingItem
             icon="information-circle-outline"
-            label="Version"
+            label={t('settings.version')}
             subtitle="1.0.0"
             iconColor={Colors.textSecondary}
             rightElement={<Text style={styles.versionText}>1.0.0</Text>}
@@ -164,7 +211,7 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
           <SettingItem
             icon="document-text-outline"
-            label="Privacy Policy"
+            label={t('settings.privacy')}
             iconColor={Colors.textSecondary}
           />
         </View>
@@ -173,7 +220,7 @@ export default function SettingsScreen() {
         <View style={[styles.sectionCard, { marginTop: 20 }]}>
           <SettingItem
             icon="log-out-outline"
-            label="Sign Out"
+            label={t('settings.signOut')}
             iconColor={Colors.error}
             danger
             onPress={handleLogout}
@@ -186,7 +233,7 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -298,5 +345,30 @@ const styles = StyleSheet.create({
   },
   footerSpace: {
     height: 20,
+  },
+  toggleGroup: {
+    flexDirection: 'row',
+    backgroundColor: Colors.inputBg,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.inputBorder,
+    overflow: 'hidden',
+  },
+  toggleBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRightWidth: 1,
+    borderRightColor: Colors.inputBorder,
+  },
+  toggleBtnActive: {
+    backgroundColor: Colors.accentGlow,
+  },
+  toggleBtnText: {
+    color: Colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  toggleBtnTextActive: {
+    color: Colors.accent,
   },
 });

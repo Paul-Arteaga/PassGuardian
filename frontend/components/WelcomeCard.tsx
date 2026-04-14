@@ -1,18 +1,24 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '../constants/Colors';
+import { useAppTheme } from '../context/SettingsContext';
+import { useTranslation } from 'react-i18next';
+import { AppThemeColors } from '../constants/Colors';
 
 interface WelcomeCardProps {
   fullName: string;
 }
 
 export default function WelcomeCard({ fullName }: WelcomeCardProps) {
+  const Colors = useAppTheme();
+  const { t } = useTranslation();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
+
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['rgba(0, 212, 255, 0.08)', 'rgba(0, 180, 216, 0.03)']}
+        colors={[Colors.accentGlowStrong, Colors.accentGlow]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
@@ -22,16 +28,16 @@ export default function WelcomeCard({ fullName }: WelcomeCardProps) {
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.title} numberOfLines={1}>
-            Welcome back, {fullName}!
+            {t('home.welcome')}, {fullName}!
           </Text>
-          <Text style={styles.subtitle}>Your vault is secure</Text>
+          <Text style={styles.subtitle}>{t('home.appSubtitle')}</Text>
         </View>
       </LinearGradient>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   container: {
     borderRadius: 16,
     borderWidth: 1,

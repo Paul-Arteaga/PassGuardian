@@ -1,11 +1,14 @@
-import { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { router } from 'expo-router';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { Colors } from '../constants/Colors';
+import { useAppTheme } from '../context/SettingsContext';
+import { AppThemeColors } from '../constants/Colors';
 
 export default function IndexScreen() {
   const { isAuthenticated, isLoading } = useAuth();
+  const Colors = useAppTheme();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -24,7 +27,7 @@ export default function IndexScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,

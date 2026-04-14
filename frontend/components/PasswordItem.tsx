@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../constants/Colors';
+import { AppThemeColors } from '../constants/Colors';
+import { useAppTheme } from '../context/SettingsContext';
 
 interface PasswordItemProps {
   domain: string;
@@ -10,6 +11,9 @@ interface PasswordItemProps {
 }
 
 export default function PasswordItem({ domain, username, onPress }: PasswordItemProps) {
+  const Colors = useAppTheme();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
+  
   const getDomainColor = (d: string) => {
     const colors = ['#00d4ff', '#22c55e', '#8b5cf6', '#f59e0b', '#ec4899'];
     let hash = 0;
@@ -35,7 +39,7 @@ export default function PasswordItem({ domain, username, onPress }: PasswordItem
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',

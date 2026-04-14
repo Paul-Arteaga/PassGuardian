@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '../../constants/Colors';
+import { AppThemeColors } from '../../constants/Colors';
+import { useAppTheme } from '../../context/SettingsContext';
+import { useTranslation } from 'react-i18next';
 import PasswordItem from '../../components/PasswordItem';
 
 interface PasswordEntry {
@@ -30,6 +32,9 @@ const INITIAL_PASSWORDS: PasswordEntry[] = [
 ];
 
 export default function PasswordsScreen() {
+  const Colors = useAppTheme();
+  const { t } = useTranslation();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [passwords, setPasswords] = useState(INITIAL_PASSWORDS);
@@ -50,7 +55,7 @@ export default function PasswordsScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Passwords</Text>
+        <Text style={styles.headerTitle}>{t('passwords.title')}</Text>
         <View style={styles.headerBadge}>
           <Text style={styles.badgeText}>{passwords.length}</Text>
         </View>
@@ -61,7 +66,7 @@ export default function PasswordsScreen() {
         <Ionicons name="search-outline" size={18} color={Colors.textMuted} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search passwords..."
+          placeholder={t('passwords.search')}
           placeholderTextColor={Colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -77,15 +82,15 @@ export default function PasswordsScreen() {
       {/* Filter Tags */}
       <View style={styles.filterRow}>
         <View style={[styles.filterTag, styles.filterTagAll]}>
-          <Text style={styles.filterTagTextActive}>All ({passwords.length})</Text>
+          <Text style={styles.filterTagTextActive}>{t('passwords.all')} ({passwords.length})</Text>
         </View>
         <View style={styles.filterTag}>
           <View style={[styles.dot, { backgroundColor: Colors.success }]} />
-          <Text style={styles.filterTagText}>Strong ({strongCount})</Text>
+          <Text style={styles.filterTagText}>{t('passwords.strong')} ({strongCount})</Text>
         </View>
         <View style={styles.filterTag}>
           <View style={[styles.dot, { backgroundColor: Colors.warning }]} />
-          <Text style={styles.filterTagText}>Weak ({weakCount})</Text>
+          <Text style={styles.filterTagText}>{t('passwords.weak')} ({weakCount})</Text>
         </View>
       </View>
 
@@ -180,7 +185,7 @@ export default function PasswordsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,17 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Colors } from '../../constants/Colors';
+import { AppThemeColors } from '../../constants/Colors';
+import { useAppTheme } from '../../context/SettingsContext';
+import { useTranslation } from 'react-i18next';
 import { evaluatePasswordStrength } from '../../utils/passwordStrength';
 import { useAuth } from '../../context/AuthContext';
 
 export default function SignUpScreen() {
   const { signUp } = useAuth();
+  const Colors = useAppTheme();
+  const { t } = useTranslation();
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,7 +54,7 @@ export default function SignUpScreen() {
     ]).start();
   }, []);
 
-  const passwordStrength = evaluatePasswordStrength(password);
+  const passwordStrength = evaluatePasswordStrength(password, Colors);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -85,7 +90,7 @@ export default function SignUpScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -104,22 +109,22 @@ export default function SignUpScreen() {
               </LinearGradient>
             </View>
           </View>
-          <Text style={styles.appName}>PassGuardian</Text>
-          <Text style={styles.appSubtitle}>Create Your Secure Vault</Text>
+          <Text style={styles.appName}>{t('home.appTitle')}</Text>
+          <Text style={styles.appSubtitle}>{t('auth.signUpSub')}</Text>
         </Animated.View>
 
         {/* Form Card */}
         <Animated.View style={[styles.formCard, { opacity: formOpacity }]}>
-          <Text style={styles.formTitle}>Create Account</Text>
+          <Text style={styles.formTitle}>{t('auth.signUpTitle')}</Text>
 
           {/* Full Name */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Full Name</Text>
+            <Text style={styles.fieldLabel}>{t('auth.nameLabel')}</Text>
             <View style={getInputStyle('fullName')}>
               <Ionicons name="person-outline" size={18} color={focusedField === 'fullName' ? Colors.accent : Colors.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="John Doe"
+                placeholder={t('auth.namePlaceholder')}
                 placeholderTextColor={Colors.textMuted}
                 value={fullName}
                 onChangeText={(t) => { setFullName(t); setErrors(e => ({ ...e, fullName: '' })); }}
@@ -133,12 +138,12 @@ export default function SignUpScreen() {
 
           {/* Email */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Email</Text>
+            <Text style={styles.fieldLabel}>{t('auth.emailLabel')}</Text>
             <View style={getInputStyle('email')}>
               <Ionicons name="mail-outline" size={18} color={focusedField === 'email' ? Colors.accent : Colors.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="you@example.com"
+                placeholder={t('auth.emailPlaceholder')}
                 placeholderTextColor={Colors.textMuted}
                 value={email}
                 onChangeText={(t) => { setEmail(t); setErrors(e => ({ ...e, email: '' })); }}
@@ -153,12 +158,12 @@ export default function SignUpScreen() {
 
           {/* Master Password */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Master Password</Text>
+            <Text style={styles.fieldLabel}>{t('auth.passwordLabel')}</Text>
             <View style={getInputStyle('password')}>
               <Ionicons name="lock-closed-outline" size={18} color={focusedField === 'password' ? Colors.accent : Colors.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="••••••••"
+                placeholder={t('auth.passwordPlaceholder')}
                 placeholderTextColor={Colors.textMuted}
                 value={password}
                 onChangeText={(t) => { setPassword(t); setErrors(e => ({ ...e, password: '' })); }}
@@ -181,12 +186,12 @@ export default function SignUpScreen() {
 
           {/* Confirm Password */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Confirm Password</Text>
+            <Text style={styles.fieldLabel}>{t('auth.confirmPassword')}</Text>
             <View style={getInputStyle('confirmPassword')}>
               <Ionicons name="lock-closed-outline" size={18} color={focusedField === 'confirmPassword' ? Colors.accent : Colors.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="••••••••"
+                placeholder={t('auth.confirmPlaceholder')}
                 placeholderTextColor={Colors.textMuted}
                 value={confirmPassword}
                 onChangeText={(t) => { setConfirmPassword(t); setErrors(e => ({ ...e, confirmPassword: '' })); }}
@@ -217,16 +222,15 @@ export default function SignUpScreen() {
               {isLoading ? (
                 <ActivityIndicator color={Colors.background} />
               ) : (
-                <Text style={styles.buttonText}>Create Account</Text>
+                <Text style={styles.buttonText}>{t('auth.signUpButton')}</Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
 
           {/* Sign In Link */}
           <View style={styles.linkRow}>
-            <Text style={styles.linkText}>Already have an account? </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-              <Text style={styles.linkAction}>Sign In</Text>
+              <Text style={styles.linkText}>{t('auth.haveAccount')}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -241,7 +245,7 @@ export default function SignUpScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -323,11 +327,6 @@ const styles = StyleSheet.create({
   },
   inputContainerFocused: {
     borderColor: Colors.inputBorderFocus,
-    shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
   },
   inputContainerError: {
     borderColor: Colors.error,
