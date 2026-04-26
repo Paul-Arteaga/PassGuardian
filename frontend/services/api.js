@@ -5,14 +5,14 @@ const API_TIMEOUT_MS = 15000;
 
 /**
  * Puedes sobreescribir la URL con:
- * EXPO_PUBLIC_API_URL=http://TU_IP:8000/api
+ * EXPO_PUBLIC_API_URL=http://TU_IP/api
  */
 import Constants from "expo-constants";
 
 const debuggerHost = Constants.expoConfig?.hostUri || Constants.manifest?.hostUri;
 const localIp = debuggerHost ? debuggerHost.split(":")[0] : "192.168.1.17";
 
-const DEFAULT_API_BASE_URL = `http://${localIp}:8000/api`;
+const DEFAULT_API_BASE_URL = `http://${localIp}/api`;
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL?.trim() || DEFAULT_API_BASE_URL;
 console.log("-----> API_BASE_URL DYNAMIC CONFIG:", API_BASE_URL);
 
