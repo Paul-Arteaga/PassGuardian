@@ -68,22 +68,6 @@ services:
     depends_on:
       - backend
 
-  # ----------------------------------------
-  # phpMyAdmin (opcional, puedes quitarlo en producción)
-  # ----------------------------------------
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: phpmyadmin
-    restart: always
-    ports:
-      - "8080:80"
-    environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-      PMA_ARBITRARY: 1
-    depends_on:
-      db:
-        condition: service_healthy
 
 volumes:
   db_data:
