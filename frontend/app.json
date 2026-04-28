@@ -20,7 +20,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.passguardian.app"
+      "package": "com.passguardian.app",
+      "usesCleartextTraffic": true
     },
     "web": {
       "output": "static",
@@ -44,6 +45,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e62e6558-5d79-4647-98ed-9aae8a051490"
+      }
     }
   }
 }
