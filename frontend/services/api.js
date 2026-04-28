@@ -6,7 +6,7 @@ const API_TIMEOUT_MS = 15000;
  * Puedes sobreescribir la URL con:
  * EXPO_PUBLIC_API_URL=http://TU_IP/api
  */
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL?.trim() || "http://3.135.43.238/api";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL?.trim() || "https://passguardian.duckdns.org/api";
 
 let authToken = null;
 
