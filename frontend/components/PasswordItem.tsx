@@ -7,10 +7,11 @@ import { useAppTheme } from '../context/SettingsContext';
 interface PasswordItemProps {
   domain: string;
   username: string;
+  strengthColor?: string;
   onPress?: () => void;
 }
 
-export default function PasswordItem({ domain, username, onPress }: PasswordItemProps) {
+export default function PasswordItem({ domain, username, strengthColor, onPress }: PasswordItemProps) {
   const Colors = useAppTheme();
   const styles = useMemo(() => getStyles(Colors), [Colors]);
   
@@ -34,6 +35,9 @@ export default function PasswordItem({ domain, username, onPress }: PasswordItem
         <Text style={styles.domain}>{domain}</Text>
         <Text style={styles.username}>{username}</Text>
       </View>
+      {strengthColor && (
+        <View style={[styles.strengthDot, { backgroundColor: strengthColor }]} />
+      )}
       <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
     </TouchableOpacity>
   );
@@ -71,5 +75,11 @@ const getStyles = (Colors: AppThemeColors) => StyleSheet.create({
   username: {
     color: Colors.textSecondary,
     fontSize: 13,
+  },
+  strengthDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
   },
 });

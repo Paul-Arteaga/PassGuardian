@@ -5,6 +5,9 @@ from rest_framework.views import APIView
 from rest_framework import status
 from django.contrib.auth.hashers import make_password
 
+from miProyecto.models.user_profile import UserProfile
+
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -16,7 +19,7 @@ class RegisterView(APIView):
 
         if not username or not password:
             return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if User.objects.filter(username=username).exists():
             return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -26,13 +29,16 @@ class RegisterView(APIView):
             password=make_password(password),
             first_name=first_name
         )
+        UserProfile.objects.create(user=user)
         return Response({"message": "User registered successfully", "id": user.id}, status=status.HTTP_201_CREATED)
+
 
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user: User = request.user
+        profile, _ = UserProfile.objects.get_or_create(user=user)
         return Response(
             {
                 "id": user.id,
@@ -40,5 +46,6 @@ class MeView(APIView):
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
+                "is_pro": profile.is_pro,
             }
         )
