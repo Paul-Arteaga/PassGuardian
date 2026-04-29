@@ -11,14 +11,31 @@ export default function TabLayout() {
   const Colors = useAppTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  
-  const styles = useMemo(() => getStyles(Colors, insets.bottom), [Colors, insets.bottom]);
+
+  // On Android with edge-to-edge, bottom inset = height of gesture nav bar
+  const tabBarHeight = 56 + (Platform.OS === 'android' ? insets.bottom : Math.max(insets.bottom, 20));
+
+  const tabBarStyle = useMemo(() => ({
+    backgroundColor: Colors.tabBarBg,
+    borderTopColor: Colors.tabBarBorder,
+    borderTopWidth: 1,
+    height: tabBarHeight,
+    paddingTop: 6,
+    paddingBottom: Platform.OS === 'android' ? insets.bottom + 4 : Math.max(insets.bottom, 20),
+    elevation: 0,
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+  }), [Colors, insets.bottom, tabBarHeight]);
+
+  const styles = useMemo(() => getStyles(Colors), [Colors]);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle,
         tabBarActiveTintColor: Colors.tabActive,
         tabBarInactiveTintColor: Colors.tabInactive,
         tabBarLabelStyle: styles.tabLabel,
@@ -84,24 +101,8 @@ export default function TabLayout() {
   );
 }
 
-const getStyles = (Colors: AppThemeColors, bottomInset: number) => {
-  const bottomPadding = Math.max(bottomInset, Platform.OS === 'ios' ? 20 : 10);
-  const baseHeight = 55;
-
-  return StyleSheet.create({
-    tabBar: {
-      backgroundColor: Colors.tabBarBg,
-      borderTopColor: Colors.tabBarBorder,
-      borderTopWidth: 1,
-      height: baseHeight + bottomPadding,
-      paddingTop: 8,
-      paddingBottom: bottomPadding,
-      elevation: 0,
-      shadowColor: Colors.accent,
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.05,
-      shadowRadius: 10,
-    },
+const getStyles = (Colors: AppThemeColors) =>
+  StyleSheet.create({
     tabLabel: {
       fontSize: 11,
       fontWeight: '600',
@@ -117,4 +118,3 @@ const getStyles = (Colors: AppThemeColors, bottomInset: number) => {
       marginBottom: -4,
     },
   });
-};

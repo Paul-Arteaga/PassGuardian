@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider } from '../context/AuthContext';
 import { SettingsProvider, useSettings } from '../context/SettingsContext';
 
@@ -12,7 +14,7 @@ function RootStack() {
 
   return (
     <>
-      <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={colors.background} />
+      <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor="transparent" translucent />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -34,10 +36,14 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <SettingsProvider>
-      <AuthProvider>
-        <RootStack />
-      </AuthProvider>
-    </SettingsProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <SettingsProvider>
+          <AuthProvider>
+            <RootStack />
+          </AuthProvider>
+        </SettingsProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
