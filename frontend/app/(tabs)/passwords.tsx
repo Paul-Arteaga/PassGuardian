@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppThemeColors } from '../../constants/Colors';
 import { useAppTheme } from '../../context/SettingsContext';
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import PasswordItem from '../../components/PasswordItem';
 import UpgradeModal from '../../components/UpgradeModal';
@@ -51,6 +51,18 @@ export default function PasswordsScreen() {
   const { isPro } = useAuth();
   const styles = useMemo(() => getStyles(Colors), [Colors]);
   const insets = useSafeAreaInsets();
+
+  const { categoryFilter: filterParam, categoryName: filterName } =
+    useLocalSearchParams<{ categoryFilter?: string; categoryName?: string }>();
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<string | null>(null);
+  const [activeCategoryName, setActiveCategoryName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (filterParam) {
+      setActiveCategoryFilter(filterParam);
+      setActiveCategoryName(filterName || null);
+    }
+  }, [filterParam, filterName]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [passwords, setPasswords] = useState<PasswordEntry[]>([]);
@@ -218,15 +230,17 @@ export default function PasswordsScreen() {
     setNewDomain('');
     setNewUsername('');
     setNewPassword('');
-    setNewCategoryId(null);
+    setNewCategoryId(activeCategoryFilter);
     setIsAddModalVisible(true);
   };
 
-  const filteredPasswords = passwords.filter(
-    p =>
+  const filteredPasswords = passwords.filter(p => {
+    const matchesSearch =
       p.domain.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      p.username.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !activeCategoryFilter || p.categoryId === activeCategoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   const strongCount = passwords.filter(p => p.strength === 'strong').length;
   const weakCount = passwords.filter(p => p.strength === 'weak').length;
@@ -249,6 +263,18 @@ export default function PasswordsScreen() {
           <Text style={styles.freeLabel}>{passwords.length}/{FREE_PLAN_LIMIT} gratis</Text>
         )}
       </View>
+
+      {activeCategoryFilter && (
+        <View style={styles.categoryBanner}>
+          <Ionicons name="folder" size={14} color={Colors.accent} />
+          <Text style={styles.categoryBannerText} numberOfLines={1}>
+            {activeCategoryName || categories.find(c => c.id === activeCategoryFilter)?.name || 'Categoría'}
+          </Text>
+          <TouchableOpacity onPress={() => { setActiveCategoryFilter(null); setActiveCategoryName(null); }}>
+            <Ionicons name="close-circle" size={16} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={18} color={Colors.textMuted} style={styles.searchIcon} />
@@ -425,142 +451,149 @@ export default function PasswordsScreen() {
         animationType="slide"
         onRequestClose={() => setIsAddModalVisible(false)}
       >
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
+            <View style={[styles.modalContent, { maxHeight: '92%' }]}>
               <View style={styles.modalHandleContainer} {...handlePanResponder.panHandlers}>
                 <View style={styles.modalHandle} />
               </View>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  {editingId ? 'Editar Contraseña' : t('passwords.addModalTitle')}
-                </Text>
-              </View>
 
-              <View style={styles.modalField}>
-                <Text style={styles.modalLabel}>{t('passwords.websiteLabel')}</Text>
-                <View style={styles.modalValue}>
-                  <TextInput
-                    style={styles.modalValueText}
-                    placeholder={t('passwords.websitePlaceholder')}
-                    placeholderTextColor={Colors.textMuted}
-                    value={newDomain}
-                    onChangeText={setNewDomain}
-                    autoCapitalize="none"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.modalField}>
-                <Text style={styles.modalLabel}>{t('passwords.usernameLabel')}</Text>
-                <View style={styles.modalValue}>
-                  <TextInput
-                    style={styles.modalValueText}
-                    placeholder={t('passwords.usernamePlaceholder')}
-                    placeholderTextColor={Colors.textMuted}
-                    value={newUsername}
-                    onChangeText={setNewUsername}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.modalField}>
-                <Text style={styles.modalLabel}>{t('passwords.passwordLabel')}</Text>
-                <View style={styles.modalValue}>
-                  <TextInput
-                    style={[styles.modalValueText, { flex: 1 }]}
-                    placeholder={t('passwords.passwordPlaceholder')}
-                    placeholderTextColor={Colors.textMuted}
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    secureTextEntry={!showNewPassText}
-                  />
-                  <TouchableOpacity onPress={() => setShowNewPassText(!showNewPassText)}>
-                    <Ionicons
-                      name={showNewPassText ? 'eye-off-outline' : 'eye-outline'}
-                      size={20}
-                      color={Colors.textMuted}
-                    />
-                  </TouchableOpacity>
-                </View>
-                {newPassStrength && (
-                  <View style={styles.strengthRow}>
-                    <View style={styles.strengthBarBg}>
-                      <View
-                        style={[
-                          styles.strengthBarFill,
-                          {
-                            width: `${newPassStrength.score}%` as any,
-                            backgroundColor: newPassStrength.color,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={[styles.strengthHint, { color: newPassStrength.color }]}>
-                      {newPassStrength.level}
-                    </Text>
-                  </View>
-                )}
-                {newPassStrength?.feedback ? (
-                  <Text style={[styles.feedbackHint, { color: Colors.textSecondary }]}>
-                    {newPassStrength.feedback}
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>
+                    {editingId ? 'Editar Contraseña' : t('passwords.addModalTitle')}
                   </Text>
-                ) : null}
-              </View>
+                </View>
 
-              {/* Category picker */}
-              {categories.length > 0 && (
+                <View style={styles.modalField}>
+                  <Text style={styles.modalLabel}>{t('passwords.websiteLabel')}</Text>
+                  <View style={styles.modalValue}>
+                    <TextInput
+                      style={styles.modalValueText}
+                      placeholder={t('passwords.websitePlaceholder')}
+                      placeholderTextColor={Colors.textMuted}
+                      value={newDomain}
+                      onChangeText={setNewDomain}
+                      autoCapitalize="none"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.modalField}>
+                  <Text style={styles.modalLabel}>{t('passwords.usernameLabel')}</Text>
+                  <View style={styles.modalValue}>
+                    <TextInput
+                      style={styles.modalValueText}
+                      placeholder={t('passwords.usernamePlaceholder')}
+                      placeholderTextColor={Colors.textMuted}
+                      value={newUsername}
+                      onChangeText={setNewUsername}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.modalField}>
+                  <Text style={styles.modalLabel}>{t('passwords.passwordLabel')}</Text>
+                  <View style={styles.modalValue}>
+                    <TextInput
+                      style={[styles.modalValueText, { flex: 1 }]}
+                      placeholder={t('passwords.passwordPlaceholder')}
+                      placeholderTextColor={Colors.textMuted}
+                      value={newPassword}
+                      onChangeText={setNewPassword}
+                      secureTextEntry={!showNewPassText}
+                    />
+                    <TouchableOpacity onPress={() => setShowNewPassText(!showNewPassText)}>
+                      <Ionicons
+                        name={showNewPassText ? 'eye-off-outline' : 'eye-outline'}
+                        size={20}
+                        color={Colors.textMuted}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {newPassStrength && (
+                    <View style={styles.strengthRow}>
+                      <View style={styles.strengthBarBg}>
+                        <View
+                          style={[
+                            styles.strengthBarFill,
+                            {
+                              width: `${newPassStrength.score}%` as any,
+                              backgroundColor: newPassStrength.color,
+                            },
+                          ]}
+                        />
+                      </View>
+                      <Text style={[styles.strengthHint, { color: newPassStrength.color }]}>
+                        {newPassStrength.level}
+                      </Text>
+                    </View>
+                  )}
+                  {newPassStrength?.feedback ? (
+                    <Text style={[styles.feedbackHint, { color: Colors.textSecondary }]}>
+                      {newPassStrength.feedback}
+                    </Text>
+                  ) : null}
+                </View>
+
+                {/* Category picker */}
                 <View style={styles.modalField}>
                   <Text style={styles.modalLabel}>Categoría (opcional)</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
-                    <TouchableOpacity
-                      style={[
-                        styles.catChip,
-                        !newCategoryId && { backgroundColor: Colors.accent + '22', borderColor: Colors.accent },
-                      ]}
-                      onPress={() => setNewCategoryId(null)}
-                    >
-                      <Text style={[styles.catChipText, !newCategoryId && { color: Colors.accent }]}>
-                        Ninguna
-                      </Text>
-                    </TouchableOpacity>
-                    {categories.map(cat => (
+                  {categories.length === 0 ? (
+                    <Text style={[styles.feedbackHint, { color: Colors.textMuted, marginTop: 4 }]}>
+                      Crea categorías en la pestaña Categorías
+                    </Text>
+                  ) : (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
                       <TouchableOpacity
-                        key={cat.id}
                         style={[
                           styles.catChip,
-                          newCategoryId === cat.id && {
-                            backgroundColor: Colors.accent + '22',
-                            borderColor: Colors.accent,
-                          },
+                          !newCategoryId && { backgroundColor: Colors.accent + '22', borderColor: Colors.accent },
                         ]}
-                        onPress={() => setNewCategoryId(cat.id)}
+                        onPress={() => setNewCategoryId(null)}
                       >
-                        <Text
-                          style={[
-                            styles.catChipText,
-                            newCategoryId === cat.id && { color: Colors.accent },
-                          ]}
-                        >
-                          {cat.name}
+                        <Text style={[styles.catChipText, !newCategoryId && { color: Colors.accent }]}>
+                          Ninguna
                         </Text>
                       </TouchableOpacity>
-                    ))}
-                  </ScrollView>
+                      {categories.map(cat => (
+                        <TouchableOpacity
+                          key={cat.id}
+                          style={[
+                            styles.catChip,
+                            newCategoryId === cat.id && {
+                              backgroundColor: Colors.accent + '22',
+                              borderColor: Colors.accent,
+                            },
+                          ]}
+                          onPress={() => setNewCategoryId(cat.id)}
+                        >
+                          <Text
+                            style={[
+                              styles.catChipText,
+                              newCategoryId === cat.id && { color: Colors.accent },
+                            ]}
+                          >
+                            {cat.name}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  )}
                 </View>
-              )}
 
-              <TouchableOpacity
-                style={[styles.modalBtn, { backgroundColor: Colors.accent, marginTop: 10 }]}
-                onPress={handleCreatePassword}
-                disabled={isCreating}
-              >
-                <Text style={{ color: Colors.background, fontWeight: '700', textAlign: 'center', padding: 14, fontSize: 16 }}>
-                  {isCreating ? t('passwords.saving') : t('passwords.savePassword')}
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: Colors.accent, marginTop: 10, marginBottom: 10 }]}
+                  onPress={handleCreatePassword}
+                  disabled={isCreating}
+                >
+                  <Text style={{ color: Colors.background, fontWeight: '700', textAlign: 'center', padding: 14, fontSize: 16 }}>
+                    {isCreating ? t('passwords.saving') : t('passwords.savePassword')}
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -747,4 +780,23 @@ const getStyles = (Colors: AppThemeColors) =>
       marginRight: 8,
     },
     catChipText: { fontSize: 13, color: Colors.textSecondary, fontWeight: '600' },
+    categoryBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: Colors.accentGlow,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      marginHorizontal: 20,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: Colors.accent + '40',
+    },
+    categoryBannerText: {
+      flex: 1,
+      color: Colors.accent,
+      fontSize: 13,
+      fontWeight: '600',
+    },
   });

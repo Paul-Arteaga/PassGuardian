@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../../context/SettingsContext';
@@ -162,7 +163,17 @@ export default function CategoriesScreen() {
           </View>
         ) : (
           categories.map((cat: any, idx: number) => (
-            <View key={cat.id} style={styles.categoryItem}>
+            <TouchableOpacity
+              key={cat.id}
+              style={styles.categoryItem}
+              activeOpacity={0.7}
+              onPress={() =>
+                router.navigate({
+                  pathname: '/(tabs)/passwords',
+                  params: { categoryFilter: String(cat.id), categoryName: cat.name },
+                })
+              }
+            >
               <View
                 style={[
                   styles.folderIcon,
@@ -180,6 +191,7 @@ export default function CategoriesScreen() {
                 {!!cat.description && (
                   <Text style={styles.categoryDesc}>{cat.description}</Text>
                 )}
+                <Text style={styles.categoryHint}>Toca para ver contraseñas</Text>
               </View>
               <TouchableOpacity
                 style={styles.deleteBtn}
@@ -188,7 +200,8 @@ export default function CategoriesScreen() {
               >
                 <Ionicons name="trash-outline" size={18} color={Colors.error} />
               </TouchableOpacity>
-            </View>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} style={{ marginLeft: 4 }} />
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>
@@ -268,5 +281,6 @@ const getStyles = (Colors: any) =>
     categoryInfo: { flex: 1 },
     categoryName: { color: Colors.text, fontSize: 15, fontWeight: '600' },
     categoryDesc: { color: Colors.textSecondary, fontSize: 13, marginTop: 2 },
+    categoryHint: { color: Colors.textMuted, fontSize: 11, marginTop: 2 },
     deleteBtn: { padding: 4 },
   });
