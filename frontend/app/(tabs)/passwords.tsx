@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppThemeColors } from '../../constants/Colors';
 import { useAppTheme } from '../../context/SettingsContext';
 import { useTranslation } from 'react-i18next';
+import { useFocusEffect } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import PasswordItem from '../../components/PasswordItem';
 import UpgradeModal from '../../components/UpgradeModal';
@@ -80,9 +81,11 @@ export default function PasswordsScreen() {
     })
   ).current;
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchAll();
+    }, [])
+  );
 
   const fetchAll = async () => {
     try {

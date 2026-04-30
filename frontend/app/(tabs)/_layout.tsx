@@ -12,22 +12,23 @@ export default function TabLayout() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
-  // On Android with edge-to-edge, bottom inset = height of gesture nav bar
-  const tabBarHeight = 56 + (Platform.OS === 'android' ? insets.bottom : Math.max(insets.bottom, 20));
+  // edge-to-edge: bottom inset = gesture nav bar height; add extra buffer so icons stay clear
+  const navBottom = Platform.OS === 'android' ? insets.bottom : Math.max(insets.bottom, 20);
+  const tabBarHeight = 60 + navBottom;
 
   const tabBarStyle = useMemo(() => ({
     backgroundColor: Colors.tabBarBg,
     borderTopColor: Colors.tabBarBorder,
     borderTopWidth: 1,
     height: tabBarHeight,
-    paddingTop: 6,
-    paddingBottom: Platform.OS === 'android' ? insets.bottom + 4 : Math.max(insets.bottom, 20),
+    paddingTop: 8,
+    paddingBottom: navBottom + 6,
     elevation: 0,
     shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
-  }), [Colors, insets.bottom, tabBarHeight]);
+  }), [Colors, navBottom, tabBarHeight]);
 
   const styles = useMemo(() => getStyles(Colors), [Colors]);
 

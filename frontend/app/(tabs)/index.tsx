@@ -18,6 +18,7 @@ import WelcomeCard from '../../components/WelcomeCard';
 import SecurityCard from '../../components/SecurityCard';
 import PasswordItem from '../../components/PasswordItem';
 import { vaultEntryService } from '../../services/vaultEntryService';
+import { evaluatePasswordStrength } from '../../utils/passwordStrength';
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -36,12 +37,15 @@ export default function HomeScreen() {
   const fetchPasswords = async () => {
     try {
       const data = await vaultEntryService.list();
-      const formatted = data.map((item: any) => ({
-        id: item.id.toString(),
-        domain: item.website_url || item.title || 'Unknown',
-        username: item.account_identifier,
-        strength: 'strong'
-      }));
+      const formatted = data.map((item: any) => {
+        const result = evaluatePasswordStrength(item.encrypted_secret || '', Colors);
+        return {
+          id: item.id.toString(),
+          domain: item.website_url || item.title || 'Unknown',
+          username: item.account_identifier,
+          strength: result.score >= 55 ? 'strong' : 'weak',
+        };
+      });
       setPasswords(formatted);
     } catch (e) {
       console.warn("Error fetching passwords:", e);
